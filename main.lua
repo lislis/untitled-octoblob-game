@@ -202,6 +202,22 @@ function love.keypressed(key)
       count_up_round = false
    end
 
+   if player.y < 1 then
+      player.y = 1
+   end
+
+   if player.y > grid_size then
+      player.y = grid_size
+   end
+
+   if player.x < 1 then
+      player.x = 1
+   end
+
+   if player.x > grid_size then
+      player.x = grid_size
+   end
+
    if count_up_round then
       round = round + 1
    end
