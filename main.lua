@@ -32,6 +32,11 @@ function fish_gen()
 end
 
 function love.load()
+   round = 0
+   prev_round = 0
+   scared_fish = 0
+   fish_eaten = 0
+
    tile1 = love.graphics.newImage("tile3.png")
 
    block_width = tile1:getWidth()
@@ -55,6 +60,9 @@ function love.load()
    player.x = grid_size / 2
    player.y = grid_size / 2
 
+   ink_sprite  = love.graphics.newImage("ink.png")
+   inks = {}
+
    fish1 = love.graphics.newImage("fish1.png")
    fish2 = love.graphics.newImage("fish2.png")
    fish_sprite = {fish1, fish2}
@@ -65,12 +73,63 @@ function love.load()
    fish_gen()
 end
 
-
 function love.update()
+   if prev_round ~= round then
+      -- update all fish
+      for i,v in ipairs(fish) do
+         rand_x = math.random(-1, 1)
+         rand_y = math.random(-1, 1)
+
+         new_x = fish[i].pos.x + rand_x
+         new_y = fish[i].pos.y + rand_y
+
+         if new_x < 1 then
+            new_x = 1
+         end
+
+         if new_x > grid_size then
+            new_x = grid_size
+         end
+
+         if new_y < 1 then
+            new_y = 1
+         end
+
+         if new_y > grid_size then
+            new_y = grid_size
+         end
+
+         fish[i].pos.x = new_x
+         fish[i].pos.y = new_y
+
+         -- COLLISION
+         if fish[i].pos.x == player.x and fish[i].pos.y == player.y then
+            scared_fish = scared_fish + 1
+            table.remove(fish, i)
+         end
+
+         for j,b in ipairs(inks) do
+            if fish[i].pos.x == inks[j].x and fish[i].pos.y == inks[j].y then
+               fish_eaten = fish_eaten + 1
+               table.remove(fish, i)
+            end
+         end
+      end
+
+      for i,v in ipairs(inks) do
+         inks[i].ttl = inks[i].ttl - 1
+         if inks[i].ttl < 0 then
+            table.remove(inks, i)
+         end
+      end
+   end
+   prev_round = round
 end
 
 function love.draw()
-   love.graphics.print("Hello World", 400, 300)
+   love.graphics.print("Round: "..round, 10, 10)
+   love.graphics.print("Scared away: "..scared_fish, 10, 50)
+   love.graphics.print("Fish eaten: "..fish_eaten, 10, 90)
 
    for x = 1,grid_size do
       for y = 1,grid_size do
@@ -80,9 +139,15 @@ function love.draw()
 
          love.graphics.draw(tile1, current_x, current_y)
 
-         for i = 1, fish_count do
+         for s = 1,#inks do
+            if inks[s].x == x and inks[s].y == y then
+               love.graphics.draw(ink_sprite, current_x, current_y)
+            end
+         end
+
+         for i = 1,#fish do
             if fish[i].pos.x == x and fish[i].pos.y == y then
-               love.graphics.draw(fish[i].sprite, current_x + 8, current_y - 4);
+               love.graphics.draw(fish[i].sprite, current_x + 8, current_y - 4)
             end
          end
 
@@ -94,10 +159,14 @@ function love.draw()
 end
 
 function love.keypressed(key)
-   southEast = "down"
-   southWest = "left"
-   northWest = "up"
-   northEast = "right"
+   southEast = "s"
+   southWest = "a"
+   northWest = "w"
+   northEast = "d"
+
+   inking = "r"
+
+   count_up_round = true
 
    if key == northEast then -- right
       if player.x % 2 == 0 then
@@ -122,5 +191,18 @@ function love.keypressed(key)
          player.x = player.x + 1
       end
       player.y = player.y + 1
+
+   elseif key == inking then
+      spot = {}
+      spot.x = player.x
+      spot.y = player.y
+      spot.ttl = 10
+      table.insert(inks, spot)
+   else
+      count_up_round = false
+   end
+
+   if count_up_round then
+      round = round + 1
    end
 end
