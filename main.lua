@@ -149,7 +149,7 @@ function love.draw()
 
    if #fish == 0 then
       score = round
-      love.graphics.print("Done!"..fish_eaten, 10, 170)
+      love.graphics.print("Done!", 10, 170)
    end
 
    love.graphics.print("WASD to move", 690, 500)
